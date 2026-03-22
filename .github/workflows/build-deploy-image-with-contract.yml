@@ -47,10 +47,16 @@ jobs:
             --http.vhosts="*" \
             --allow-insecure-unlock
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
       - name: Deploy contract
         run: |
+          cd hardhat
           npm ci
-          npx hardhat run hardhat/scripts/deploy.ts --network geth
+          npx hardhat run scripts/deploy.ts --network geth
 
       # - name: Log in to the Container registry
       #   uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
