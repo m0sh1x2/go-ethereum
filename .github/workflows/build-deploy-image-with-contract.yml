@@ -17,7 +17,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  Build-Container-Image:
+  Build-Contract-Container-Image:
     runs-on: ubuntu-latest
 
     if: >
