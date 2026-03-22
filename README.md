@@ -113,11 +113,25 @@ All ports:
     - is this a typo in the task, will GitHub actions allow this, and when do I terminate + how do I test in the pipeline - TODO
 - build the image with the hardhat contracts in it + set up appropriate tag/version.
 
- 
+
+Plan for actions/workflows:
+
+- run the geth devnet in the pipeline - maybe use docker-compose inside of it with shared workdir?
+- register the smart-contract
+- shut down geth - because export or backups do not work when it is active
+- make a backup of the /root/.ethereum directory 
+- initiate the new geth image build with the backup - so we have the smart contract registered in the new image.
+- verify steps - check if the tags are valid
+
+other:
+- running geth as a workflow service won't work - filesystem is not shared - no backup is possible
+- running inline docker commands doesn't  work as expected, doesn't run in the background - so only option for now is the docker-compose file with shared directory and direct registration of the contract + shutdown and then backup/export into the new image for build.
+
+
  Supports Tests:
 
  ```bash
- npx hardhat test solidity --coverage
+npx hardhat test solidity --coverage
 npx hardhat test nodejs --coverage
 npx hardhat test --coverage
 ```
