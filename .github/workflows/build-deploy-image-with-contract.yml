@@ -1,5 +1,5 @@
-name: Docker image build test
-run-name: ${{ github.actor }} testing docker build
+name: Smart Contract Image Build
+run-name: ${{ github.actor }} building smart contract geth image
 on: 
   push:
     branches:
