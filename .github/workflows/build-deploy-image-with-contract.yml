@@ -56,9 +56,10 @@ jobs:
           
       - name: Deploy contract
         run: |
+          docker ps
           cd hardhat
           npm ci
-          npx hardhat run scripts/deploy.ts --network geth
+          npx hardhat run scripts/deploy-counter.ts --network geth
 
       # - name: Log in to the Container registry
       #   uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
