@@ -20,9 +20,9 @@ jobs:
   Build-Contract-Container-Image:
     runs-on: ubuntu-latest
 
-    if: >
-      github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.labels.*.name, 'CI:Deploy')
+    # if: >
+    #   github.event.pull_request.merged == true &&
+    #   contains(github.event.pull_request.labels.*.name, 'CI:Deploy')
 
     permissions:
       contents: read
