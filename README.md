@@ -154,7 +154,35 @@ export default defineConfig({
   },
 });
 ```
+Deploy the smart contract with the script:
 
+```bash
+npx hardhat run scripts/deploy-counter.ts --build-profile production --network geth
+```
+
+
+Veriify that the contract is valid with the new contract address: 
+
+```bash
+curl http://localhost:8545 \
+  -X POST \
+  -H "Content-Type: application/json" \
+  --data '{
+    "jsonrpc":"2.0",
+    "method":"eth_getCode",
+    "params":["0xdb7d6ab1f17c6b31909ae466702703daef9269cf","latest"],
+    "id":1
+  }'
+```
+
+Can be verified also with:
+
+```javascript
+geth attach http://localhost:8545
+// result:
+> eth.getCode("0xdb7d6ab1f17c6b31909ae466702703daef9269cf")
+"0x608060405234801561000f575f5ffd5b506004361061003f575f3560e01c80630c55699c14610043578063371303c01461005d57806370119d0614610067575b5f5ffd5b61004b5f5481565b60405190815260200160405180910390f35b61006561007a565b005b610065610075366004610170565b6100c6565b60015f5f82825461008b9190610187565b9091555050604051600181527f51af157c2eee40f68107a47a49c32fbbeb0a3c9e5cd37aa56e88e6be92368a819060200160405180910390a1565b5f81116101255760405162461bcd60e51b815260206004820152602360248201527f696e6342793a20696e6372656d656e742073686f756c6420626520706f73697460448201526269766560e81b606482015260840160405180910390fd5b805f5f8282546101359190610187565b90915550506040518181527f51af157c2eee40f68107a47a49c32fbbeb0a3c9e5cd37aa56e88e6be92368a819060200160405180910390a150565b5f60208284031215610180575f5ffd5b5035919050565b808201808211156101a657634e487b7160e01b5f52601160045260245ffd5b9291505056fea26469706673582212209f29cef328aaec5c90c03d4b39dd6e8a1d7ab6a444aef1af6e373493c9ca60b864736f6c634300081c0033"
+```
 
 
 
@@ -191,8 +219,21 @@ geth-1  | WARN [03-22|13:18:39.894] Served hardhat_getAutomine               con
 
 This is something related to the deployment, no solution at the moment.
 
-Is this the right way to deploy the smart contract with hardhat and geth? - TODO
+Is this the right way to deploy the smart contract with hardhat and geth?
+- no, hardhat has docs on how to deploy with custom scripts - https://hardhat.org/docs/guides/deployment/using-scripts
 
+The solution is fixed with scripts/deploy-counter.ts - The viem version.
+
+The `hardhat_getAutomine` error is related to a method supported by hardhad ignition that is not supported by geth, but it does not affect the deployment of the smart contract. The deployment is successful and the error can be ignored.
+
+---
+
+Invalid genesis configuration when running the node after `geth import`.
+
+```bash
+geth-1  | Fatal: Bad developer-mode genesis configuration: terminalTotalDifficulty must be 0
+```
+Most likely we also have to specify the genesis configuration on import for the `--dev` mode to work?
 
 
 ## New Terms and Tech I need to learn
