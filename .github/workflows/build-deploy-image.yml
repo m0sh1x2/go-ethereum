@@ -60,3 +60,9 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+          
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump event
+        run: echo '${{ toJson(github.event) }}'
