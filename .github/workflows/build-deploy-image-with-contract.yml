@@ -52,6 +52,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: hardhat/package-lock.json
+          
       - name: Deploy contract
         run: |
           cd hardhat
