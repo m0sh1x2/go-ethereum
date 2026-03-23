@@ -31,6 +31,7 @@ sleep 2
 echo "Registering Hardhat contract to geth"
 
 cd hardhat
+npm ci
 npx hardhat run scripts/deploy-counter.ts --build-profile production --network geth
 
 echo "Stopping geth PID: $GETH_PID"
