@@ -2,6 +2,7 @@
 services:
   geth:
     image: ghcr.io/m0sh1x2/go-ethereum-alltools:master
+    # image: geth-alltools-node:0.0.1
 
     entrypoint: ["/entrypoint.sh"]
 
@@ -24,6 +25,7 @@ services:
 
       - ./deploy/checkpoint/:/root/checkpoint/ # Output of devnet checkpoint
       - ./deploy/entrypoint.sh:/entrypoint.sh
+      - ./hardhat:/hardhat
 
 # volumes:
 #   geth-datadir:
