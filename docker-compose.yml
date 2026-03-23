@@ -5,7 +5,8 @@ services:
     # image: geth-contracts:0.0.1
 
     # Basic all-tools image
-    image: go-etherium:0.0.1-all-tools
+    # image: go-etherium:0.0.1-all-tools
+    image: ghcr.io/m0sh1x2/go-ethereum-alltools:master
 
     # --http # works in localhost but doesn't listen on the public address
     command:  >

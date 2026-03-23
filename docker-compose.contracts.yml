@@ -1,7 +1,7 @@
 
 services:
   geth:
-    image: geth-smart-contract:0.0.1
+    image: ghcr.io/m0sh1x2/go-ethereum-alltools:master
 
     entrypoint: ["/entrypoint.sh"]
 
