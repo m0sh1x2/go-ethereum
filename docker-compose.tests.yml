@@ -1,0 +1,45 @@
+
+services:
+  geth:
+    image: ${GETH_IMAGE:-ghcr.io/m0sh1x2/go-ethereum-contracts:test-branch}
+
+    # --http # works in localhost but doesn't listen on the public address
+    command:  >
+      geth
+      --dev 
+      --http
+      --http.addr 0.0.0.0 
+      --http.api eth,web3,debug,net 
+      --http.corsdomain "https://remix.ethereum.org"
+      --datadir=/root/.ethereum
+      --http.vhosts="*"
+      --allow-insecure-unlock 
+
+    # For debug purposes:
+    # command:  sleep 3000
+    ports:
+      - 8545:8545
+      - 8546:8546
+      - 30303:30303
+    healthcheck:
+      test: ["CMD", "geth", "--exec", "net.listening", "attach", "http://localhost:8545"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+      start_interval: 5s
+  test-geth: 
+    depends_on: ["geth"]
+    # we are using the default all-tools-node image
+    image: ghcr.io/m0sh1x2/go-ethereum-alltools-node:master
+
+    # We are specyfing a different test config so that we can use the docker dns
+    command: sh -c "ls -lat && cd hardhat/ && npx hardhat test --network geth --config hardhat.config.test.ts"
+
+    volumes:
+      - ./hardhat:/hardhat
+#       - geth-datadir:/root/.ethereum
+
+# volumes:
+#   geth-datadir:
+

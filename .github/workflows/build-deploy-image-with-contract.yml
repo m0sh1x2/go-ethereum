@@ -3,11 +3,11 @@ run-name: ${{ github.actor }} building smart contract geth image
 on: 
   push:
     branches:
-      - test-branch
+      - master
   pull_request:
-    # types: [closed] # trigger only on closed pull reqeusts
+    types: [closed] # trigger only on closed pull reqeusts
     branches:
-      - test-branch
+      - master
   workflow_dispatch: # allow manual rebuilds
 
 # Docs/Guide provides info that ghcr is supported out of the box with the docker actions + recommend usage of action sha.
@@ -20,9 +20,9 @@ jobs:
   Build-Contract-Container-Image:
     runs-on: ubuntu-latest
 
-    # if: >
-    #   github.event.pull_request.merged == true &&
-    #   contains(github.event.pull_request.labels.*.name, 'CI:Deploy')
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'CI:Deploy')
 
     permissions:
       contents: read
@@ -72,6 +72,19 @@ jobs:
           # 2. Add Caching configuration
           cache-from: type=gha,scope=${{ github.workflow }}-${{ env.IMAGE_NAME }}
           cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ env.IMAGE_NAME }}
+
+
+      # We can set env variables in a strange way with GitHub Actions: https://stackoverflow.com/questions/57968497/how-do-i-set-an-env-var-with-a-bash-expression-in-github-actions
+      - name: Set Geth Image Env
+        run: |
+          # Convert everything to lowercase using bash parameter expansion - asked Gemini for help
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          TAG_LOWER=$(echo "${{ github.ref_name }}" | tr '[:upper:]' '[:lower:]')
+          
+          echo "GETH_IMAGE=ghcr.io/${REPO_LOWER}-contracts:${TAG_LOWER}" >> $GITHUB_ENV
+
+      - name: Run Compose Test
+        run: docker compose -f docker-compose.tests.yml up --abort-on-container-exit --exit-code-from test-geth
 
       - name: Generate artifact attestation
         uses: actions/attest@v4
