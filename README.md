@@ -238,6 +238,46 @@ geth attach http://localhost:8545
 "0x608060405234801561000f575f5ffd5b506004361061003f575f3560e01c80630c55699c14610043578063371303c01461005d57806370119d0614610067575b5f5ffd5b61004b5f5481565b60405190815260200160405180910390f35b61006561007a565b005b610065610075366004610170565b6100c6565b60015f5f82825461008b9190610187565b9091555050604051600181527f51af157c2eee40f68107a47a49c32fbbeb0a3c9e5cd37aa56e88e6be92368a819060200160405180910390a1565b5f81116101255760405162461bcd60e51b815260206004820152602360248201527f696e6342793a20696e6372656d656e742073686f756c6420626520706f73697460448201526269766560e81b606482015260840160405180910390fd5b805f5f8282546101359190610187565b90915550506040518181527f51af157c2eee40f68107a47a49c32fbbeb0a3c9e5cd37aa56e88e6be92368a819060200160405180910390a150565b5f60208284031215610180575f5ffd5b5035919050565b808201808211156101a657634e487b7160e01b5f52601160045260245ffd5b9291505056fea26469706673582212209f29cef328aaec5c90c03d4b39dd6e8a1d7ab6a444aef1af6e373493c9ca60b864736f6c634300081c0033"
 ```
 
+## Running hardhat ingregration test agains the devnet docker image
+
+Documentations that there is Multichain support for the hardhat viem test suit: https://hardhat.org/docs/guides/testing/using-viem#multichain-support
+
+Guess the `--network geth` flag is enough to run the test agains the geth node:
+
+```bash
+npx hardhat test --network geth
+
+# response
+...
+
+  Counter
+    ✔ Should emit the Increment event when calling the inc() function
+    ✔ The sum of the Increment events should match the current value (142ms)
+
+7 passing (5 solidity, 2 nodejs)
+```
+
+Seems to be working, so I will add it into the pipeline for testing after deploy - for this we might need a new way to test the built image.
+
+Possible way to set a custom env for the test: https://stackoverflow.com/questions/57968497/how-do-i-set-an-env-var-with-a-bash-expression-in-github-actions - thats new, should test or write it more if it's a good practice.
+
+```yaml
+# Source - https://stackoverflow.com/a/57969570
+# Posted by peterevans, modified by community. See post 'Timeline' for change history
+# Retrieved 2026-03-23, License - CC BY-SA 4.0
+
+name: my workflow
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set env
+      run: echo "GITHUB_SHA_SHORT=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+    - name: Test
+      run: echo $GITHUB_SHA_SHORT
+```
 
 
 
