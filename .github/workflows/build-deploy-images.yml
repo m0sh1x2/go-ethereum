@@ -29,7 +29,10 @@ jobs:
           - image_suffix: "alltools"
             dockerfile: "./Dockerfile.alltools"
             context: "."
-
+          - image_suffix: "alltools-node"
+            dockerfile: "./Dockerfile.alltools.node"
+            context: "."
+            
     #if: ${{ github.event.label.name == 'CI:Build' }} # source: https://stackoverflow.com/questions/62325286/run-github-actions-when-pull-requests-have-a-specific-label
     
     # Run the build once the merge is complete: https://github.com/orgs/community/discussions/26724#discussioncomment-3253096
@@ -47,6 +50,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # 1. Add Buildx - Required for Docker caching
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
@@ -69,7 +76,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
+          # 2. Add Caching configuration
+          cache-from: type=gha,scope=${{ github.workflow }}-${{ matrix.image_suffix }}
+          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ matrix.image_suffix }}
+          
       - name: Generate artifact attestation
         uses: actions/attest@v4
         with:

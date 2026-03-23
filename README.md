@@ -140,7 +140,30 @@ COPY ./deploy/checkpoint/checkpoint.tar.gz .
 RUN mkdir /root/.ethereum && tar xfz checkpoint.tar.gz -C /root/.ethereum
 ```
 
+Verify if the contracts are applied:
 
+```bash
+cd /root/.ethereum
+geth attach geth.ipc
+
+# and run - based on Gemini this should show all addresses in the devchain + show which one has a contract address
+
+var latest = eth.blockNumber;
+console.log("Scanning " + latest + " blocks...");
+
+for (var i = 1; i <= latest; i++) {
+  var block = eth.getBlock(i, true);
+  if (block != null && block.transactions != null) {
+    block.transactions.forEach(function(tx) {
+      var receipt = eth.getTransactionReceipt(tx.hash);
+      // If a transaction receipt has a contractAddress, it was a deployment!
+      if (receipt && receipt.contractAddress) {
+        console.log("Block " + i + " | TX: " + tx.hash);
+        console.log("--> Contract Address: " + receipt.contractAddress);
+      }
+    });
+  }
+}
 
 
 
