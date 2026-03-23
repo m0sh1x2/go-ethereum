@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: geth-devnet
+spec:
+  selector:
+    app.kubernetes.io/name: geth-devnet
+  ports:
+    - port: 8545
+      protocol: TCP
+      name: json-rpc
+    - port: 8546
+      name: ws-json-rpc
+      protocol: TCP
+    - port: 30303
+      protocol: TCP
+      name: p2p-tcp
+    - port: 30303
+      protocol: UDP
+      name: p2p-udp
+    - port: 6060
+      name: metrics
