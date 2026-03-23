@@ -4,9 +4,11 @@ services:
     # Image with pre-loaded contracts
     # image: geth-contracts:0.0.1
 
-    # Basic all-tools image
-    # image: go-etherium:0.0.1-all-tools
-    image: ghcr.io/m0sh1x2/go-ethereum-alltools:master
+    # Basic image with tools
+    # image: ghcr.io/m0sh1x2/go-ethereum-alltools:master
+    
+    # Image with contracts
+    image: ghcr.io/m0sh1x2/go-ethereum-contracts:test-branch
 
     # --http # works in localhost but doesn't listen on the public address
     command:  >
