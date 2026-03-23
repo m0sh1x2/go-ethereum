@@ -11,6 +11,8 @@ FROM ghcr.io/m0sh1x2/go-ethereum-alltools:master
 COPY ./deploy/checkpoint/checkpoint.tar.gz .
 RUN mkdir /root/.ethereum && tar xfz checkpoint.tar.gz -C /root/.ethereum && rm checkpoint.tar.gz
 
+RUN apk add curl 
+
 EXPOSE 8545 8546 30303 30303/udp
 
 # Add some metadata labels to help programmatic image consumption

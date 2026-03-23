@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: geth-devnet
+spec:
+  selector:
+    matchLabels:
+      app: geth-devnet # has to match .spec.template.metadata.labels
+  serviceName: "geth-devnet"
+  replicas: 1 
+  minReadySeconds: 10 
+  template:
+    metadata:
+      labels:
+        app: geth-devnet # has to match .spec.selector.matchLabels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: geth-devnet
+
+        image: ghcr.io/m0sh1x2/go-ethereum-contracts:master
+        command: [ "/bin/sh", "-c"]
+        args: 
+          - geth
+            --dev 
+            --http
+            --http.addr 0.0.0.0 
+            --http.api eth,web3,debug,net 
+            --http.corsdomain "https://remix.ethereum.org"
+            --datadir=/root/.ethereum
+            --http.vhosts="*"
+            --allow-insecure-unlock 
+            --metrics
+            --metrics.addr 127.0.0.1
+            --metrics.port 6060
+
+        # I am setting some default resources - no idea of the node cpu/memory usage when under medium or heavy load.
+        resources:
+          requests:
+            cpu: 200m
+            memory: 200Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        # TOOD: curl is not built in the container...
+        # readynessProbe:
+        #   exec:
+        #     command:
+        #       - /bin/sh
+        #       - -c
+        #       - >
+        #         curl -s -X POST http://localhost:8545 \
+        #         -H "Content-Type: application/json" \
+        #         --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+        #         | grep -q '"result"'
+        #   initialDelaySeconds: 1
+        #   periodSeconds: 1
+
+        # livenessProbe:
+        #   exec:
+        #     command:
+        #       - /bin/sh
+        #       - -c
+        #       - >
+        #         curl -s -X POST http://localhost:8545 \
+        #         -H "Content-Type: application/json" \
+        #         --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+        #         | grep -q '"result"'
+        #   initialDelaySeconds: 1
+        #   periodSeconds: 1
+        ports:
+        # - 8545 TCP, used by the HTTP based JSON RPC API
+        # - 8546 TCP, used by the WebSocket based JSON RPC API
+        # - 8547 TCP, used by the GraphQL API
+        # - 30303 TCP and UDP, used by the P2P protocol running the network
+        
+        - containerPort: 8545
+          name: json-rpc
+        - containerPort: 8546
+          name: ws-json-rpc
+        - containerPort: 30303
+          name: p2p
+        - containerPort: 6060
+          name: metrics
+
+        volumeMounts:
+        - name: datadir
+          mountPath: /root/.ethereum
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # storageClassName: "my-storage-class"
+      resources:
+        requests:
+          storage: 1Gi
