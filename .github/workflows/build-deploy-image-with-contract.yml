@@ -1,32 +1,28 @@
-name: Docker image build test
-run-name: ${{ github.actor }} testing docker build
+name: Smart Contract Image Build
+run-name: ${{ github.actor }} building smart contract geth image
 on: 
   push:
     branches:
-      - master
+      - test-branch
   pull_request:
-    types: [closed] # trigger only on closed pull reqeusts
+    # types: [closed] # trigger only on closed pull reqeusts
     branches:
-      - master
+      - test-branch
   workflow_dispatch: # allow manual rebuilds
 
 # Docs/Guide provides info that ghcr is supported out of the box with the docker actions + recommend usage of action sha.
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}-contracts
 
 jobs:
-  Build-Container-Image:
+  Build-Contract-Container-Image:
     runs-on: ubuntu-latest
 
-
-    #if: ${{ github.event.label.name == 'CI:Build' }} # source: https://stackoverflow.com/questions/62325286/run-github-actions-when-pull-requests-have-a-specific-label
-    
-    # Run the build once the merge is complete: https://github.com/orgs/community/discussions/26724#discussioncomment-3253096
-    if: >
-      github.event.pull_request.merged == true &&
-      contains(github.event.pull_request.labels.*.name, 'CI:Build')
+    # if: >
+    #   github.event.pull_request.merged == true &&
+    #   contains(github.event.pull_request.labels.*.name, 'CI:Deploy')
 
     permissions:
       contents: read
@@ -37,6 +33,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+
+
+      # Here we run the contract workflow, we should exit 1 when successsfully completed.
+      # TODO: Do we use --wait-on-container exit or it should work as expected in Github Actions?
+      - name: Run Compose and devnet contract bind state
+        run: docker compose -f docker-compose.contracts.yml up
 
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -66,9 +68,3 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-
-  debug:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dump event
-        run: echo '${{ toJson(github.event) }}'

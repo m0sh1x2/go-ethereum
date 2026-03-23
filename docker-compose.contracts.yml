@@ -1,0 +1,30 @@
+
+services:
+  geth:
+    image: geth-smart-contract:0.0.1
+
+    entrypoint: ["/entrypoint.sh"]
+
+    # For debug purposes:
+    # command:  sleep 3000
+    ports:
+      - 8545:8545
+      - 8546:8546
+      - 30303:30303
+
+    # healthcheck:
+    #   test: ["CMD", "geth", "--exec", "net.listening", "attach", "http://localhost:8545"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    #   start_period: 40s
+    #   start_interval: 5s
+    volumes:
+      # - ./deploy/data:/root/.ethereum # We don't need the geth datadir, we only need to deploy the contract for the next build step
+
+      - ./deploy/checkpoint/:/root/checkpoint/ # Output of devnet checkpoint
+      - ./deploy/entrypoint.sh:/entrypoint.sh
+
+# volumes:
+#   geth-datadir:
+

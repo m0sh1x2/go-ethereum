@@ -104,9 +104,168 @@ All ports:
 - 30303 TCP and UDP, used by the P2P protocol running the network
 
 
+# Phase 3 Hardhat
 
+- Understand what Hardhat is
+- Set up hardhat
+- Deploy the sample hardhad project into the docker-compose devnet
+- Run the whole devnet + hardhad project/contarct inside the github actions pipeline
+    - is this a typo in the task, will GitHub actions allow this, and when do I terminate + how do I test in the pipeline - TODO
+- build the image with the hardhat contracts in it + set up appropriate tag/version.
+
+
+Plan for actions/workflows:
+
+- run the geth devnet in the pipeline - maybe use docker-compose inside of it with shared workdir?
+- register the smart-contract
+- shut down geth - because export or backups do not work when it is active
+- make a backup of the /root/.ethereum directory 
+- initiate the new geth image build with the backup - so we have the smart contract registered in the new image.
+- verify steps - check if the tags are valid
+
+other:
+- running geth as a workflow service won't work - filesystem is not shared - no backup is possible
+- running inline docker commands doesn't  work as expected, doesn't run in the background - so only option for now is the `docker-compose` file with shared directory and direct registration of the contract + shutdown and then backup/export into the new image for build.
+
+TODO: Remember to enable go build caching for the Dockerfiles - https://docs.docker.com/build/cache/optimize/
+
+### HardHad Container Contract build steps:
+
+Run the `docker-compose.contracts.yml` so that we can execute the `deploy/entrypoint.sh` which runs geth in dev mode in background, registers the `hardhat` contrac, gracefully shuts down geth and then exports the devnet state archive at `deploy/checkpoint.tar.gz` that will be used in `Dockerfile.contracts` for the next build step that will run in Github Actions.
+
+- `deploy/Dockerfile.contracts` - contains the devnet + contract checkpoint - uses the alltools image as we assume that it will be used by developers.
+
+```Dockerfile
+COPY ./deploy/checkpoint/checkpoint.tar.gz .
+RUN mkdir /root/.ethereum && tar xfz checkpoint.tar.gz -C /root/.ethereum
+```
+
+
+
+
+
+
+ Supports Tests:
+
+ ```bash
+npx hardhat test solidity --coverage
+npx hardhat test nodejs --coverage
+npx hardhat test --coverage
+```
+
+```bash
+# Check if the deployment module works
+npx hardhat ignition deploy ignition/modules/Counter.ts
+
+# Deploy to a local dev node
+npx hardhat node
+
+# In a different terminal test(this should be the test for the CI/CD pipeline):
+npx hardhat ignition deploy ignition/modules/Counter.ts --network localhost
+---
+
+Deploying to a live network
+- should work with the go-ethereum devnet?
+
+```js
+import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import { defineConfig } from "hardhat/config";
+
+export default defineConfig({
+  plugins: [hardhatToolboxViemPlugin],
+  solidity: {
+    version: "0.8.28",
+  },
+  networks: {
+    sepolia: {
+      type: "http",
+      url: "<SEPOLIA_RPC_URL>",
+      accounts: ["<SEPOLIA_PRIVATE_KEY>"],
+    },
+  },
+});
+```
+Deploy the smart contract with the script:
+
+```bash
+npx hardhat run scripts/deploy-counter.ts --build-profile production --network geth
+```
+
+
+Veriify that the contract is valid with the new contract address: 
+
+```bash
+curl http://localhost:8545 \
+  -X POST \
+  -H "Content-Type: application/json" \
+  --data '{
+    "jsonrpc":"2.0",
+    "method":"eth_getCode",
+    "params":["0xdb7d6ab1f17c6b31909ae466702703daef9269cf","latest"],
+    "id":1
+  }'
+```
+
+Can be verified also with:
+
+```javascript
+geth attach http://localhost:8545
+// result:
+> eth.getCode("0xdb7d6ab1f17c6b31909ae466702703daef9269cf")
+"0x608060405234801561000f575f5ffd5b506004361061003f575f3560e01c80630c55699c14610043578063371303c01461005d57806370119d0614610067575b5f5ffd5b61004b5f5481565b60405190815260200160405180910390f35b61006561007a565b005b610065610075366004610170565b6100c6565b60015f5f82825461008b9190610187565b9091555050604051600181527f51af157c2eee40f68107a47a49c32fbbeb0a3c9e5cd37aa56e88e6be92368a819060200160405180910390a1565b5f81116101255760405162461bcd60e51b815260206004820152602360248201527f696e6342793a20696e6372656d656e742073686f756c6420626520706f73697460448201526269766560e81b606482015260840160405180910390fd5b805f5f8282546101359190610187565b90915550506040518181527f51af157c2eee40f68107a47a49c32fbbeb0a3c9e5cd37aa56e88e6be92368a819060200160405180910390a150565b5f60208284031215610180575f5ffd5b5035919050565b808201808211156101a657634e487b7160e01b5f52601160045260245ffd5b9291505056fea26469706673582212209f29cef328aaec5c90c03d4b39dd6e8a1d7ab6a444aef1af6e373493c9ca60b864736f6c634300081c0033"
+```
+
+
+
+
+
+
+
+
+
+
+# Faced Issues/Errors
+
+When trying ot register a the demo smart contract to geth devnet:
+
+```bash
+npx hardhat ignition deploy ignition/modules/Counter.ts --network geth
+✔ Confirm deploy to network geth (1337)? … yes
+Hardhat Ignition 🚀
+
+Resuming existing deployment from ./ignition/deployments/chain-1337
+
+Deploying [ CounterModule ]
+
+
+Batch #1
+  Executing CounterModule#Counter...
+```
+
+we get the following error in geth devnode:
+
+```
+geth-1  | WARN [03-22|13:18:39.894] Served hardhat_getAutomine               conn=172.20.0.1:55460 reqid=4 duration="5.991µs" err="the method hardhat_getAutomine does not exist/is not available"
+```
+
+This is something related to the deployment, no solution at the moment.
+
+Is this the right way to deploy the smart contract with hardhat and geth?
+- no, hardhat has docs on how to deploy with custom scripts - https://hardhat.org/docs/guides/deployment/using-scripts
+
+The solution is fixed with scripts/deploy-counter.ts - The viem version.
+
+The `hardhat_getAutomine` error is related to a method supported by hardhad ignition that is not supported by geth, but it does not affect the deployment of the smart contract. The deployment is successful and the error can be ignored.
 
 ---
+
+Invalid genesis configuration when running the node after `geth import`.
+
+```bash
+geth-1  | Fatal: Bad developer-mode genesis configuration: terminalTotalDifficulty must be 0
+```
+Most likely we also have to specify the genesis configuration on import for the `--dev` mode to work?
+
 
 ## New Terms and Tech I need to learn
 
@@ -145,3 +304,17 @@ POS - consensus mechanism that supports DApps through validatiors that secure th
 - Consensus clients -  (such as Prysm, Teku, Nimbus, Lighthouse, Lodestar) run Ethereum's proof-of-stake consensus algorithm allowing the network to reach agreement about the head of the Beacon Chain. Consensus clients do not participate in validating/broadcasting transactions or executing state transitions. This is done by execution clients. Consensus clients do not attest to, or propose new blocks. This is done by the validator client which is an optional add-on to the consensus client.
 
 Validator - A node in a proof-of-stake system responsible for storing data, processing transactions, and adding new blocks to the blockchain. To activate validator software, you need to be able to stake 32 ETH. More on staking in Ethereum.
+
+
+### Hardhat
+
+- Hardhat is a flexible and extensible development environment for Ethereum software. It helps you write, test, debug, and deploy your smart contracts with ease, whether you’re building a simple prototype or a complex production system.
+
+- viem is a TypeScript interface for Ethereum that provides low-level stateless primitives for interacting with Ethereum. viem is focused on developer experience, stability, bundle size, and performance.
+
+- Hardhat Tests:
+    - Besides being written in TypeScript, there are two important differences between these tests and the Solidity tests you wrote earlier:
+        - TypeScript tests use a test runner from the TypeScript ecosystem. Hardhat works with any test runner. In this case, you’re using the built-in node:test module.
+        - While Solidity tests run directly on the EVM, TypeScript tests run on a locally simulated network. Each time a test calls network.connect(), it gets a fresh blockchain state, and any changes made during the test are discarded at the end. This is useful for integration tests, where you want a more realistic environment with proper blocks and transactions.
+
+- Hardhat Ignition is a declarative system for deploying smart contracts on Ethereum. It enables you to define smart contract instances you want to deploy, and any operation you want to run on them. By taking over the deployment and execution, Hardhat Ignition lets you focus on your project instead of getting caught up in the deployment details.

@@ -1,0 +1,42 @@
+# Support setting various labels on the final image
+ARG COMMIT=""
+ARG VERSION=""
+ARG BUILDNUM=""
+
+# Build Geth in a stock Go builder container
+FROM golang:1.26-alpine AS builder
+
+RUN apk add --no-cache gcc musl-dev linux-headers git
+
+# Get dependencies - will also be cached if we won't change go.mod/go.sum
+COPY go.mod /go-ethereum/
+COPY go.sum /go-ethereum/
+RUN cd /go-ethereum && go mod download
+
+ADD . /go-ethereum
+
+# Enable chaching - this takes most time - https://docs.docker.com/build/cache/optimize/
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    cd /go-ethereum && go run build/ci.go install -static
+
+# We are using node so that we can register the smart contracts into geth
+# FROM node:24-alpine3.22
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates
+COPY --from=builder /go-ethereum/build/bin/* /usr/local/bin/
+
+# Set up the devnet checkpoint
+# IMPORTANT: If the directory is overwritten then the contracts and state will be gone.
+COPY ./deploy/checkpoint/checkpoint.tar.gz .
+RUN mkdir /root/.ethereum && tar xfz checkpoint.tar.gz -C /root/.ethereum
+
+EXPOSE 8545 8546 30303 30303/udp
+
+# Add some metadata labels to help programmatic image consumption
+ARG COMMIT=""
+ARG VERSION=""
+ARG BUILDNUM=""
+
+LABEL commit="$COMMIT" version="$VERSION" buildnum="$BUILDNUM"
