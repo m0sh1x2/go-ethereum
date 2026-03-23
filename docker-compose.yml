@@ -1,23 +1,26 @@
 
 services:
   geth:
+    # Image with pre-loaded contracts
+    # image: geth-contracts:0.0.1
+
+    # Basic all-tools image
     image: go-etherium:0.0.1-all-tools
-    # geth --dev --http --http.api eth,web3,net --http.corsdomain "https://remix.ethereum.org"
 
     # --http # works in localhost but doesn't listen on the public address
-    # command:  >
-    #   geth
-    #   --dev 
-    #   --http
-    #   --http.addr 0.0.0.0 
-    #   --http.api eth,web3,debug,net 
-    #   --http.corsdomain "https://remix.ethereum.org"
-    #   --datadir=/root/.ethereum
-    #   --http.vhosts="*"
-    #   --allow-insecure-unlock 
+    command:  >
+      geth
+      --dev 
+      --http
+      --http.addr 0.0.0.0 
+      --http.api eth,web3,debug,net 
+      --http.corsdomain "https://remix.ethereum.org"
+      --datadir=/root/.ethereum
+      --http.vhosts="*"
+      --allow-insecure-unlock 
 
-    # command:  geth export backup01 && sleep 30
-    command:  sleep 3000
+    # For debug purposes:
+    # command:  sleep 3000
     ports:
       - 8545:8545
       - 8546:8546
@@ -29,11 +32,9 @@ services:
       retries: 3
       start_period: 40s
       start_interval: 5s
-    volumes:
-      - geth-datadir:/root/.ethereum
+#     volumes:
+#       - geth-datadir:/root/.ethereum
 
-      # TODO: implement health-check if supported and possible
-
-volumes:
-  geth-datadir:
+# volumes:
+#   geth-datadir:
 

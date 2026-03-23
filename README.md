@@ -125,7 +125,24 @@ Plan for actions/workflows:
 
 other:
 - running geth as a workflow service won't work - filesystem is not shared - no backup is possible
-- running inline docker commands doesn't  work as expected, doesn't run in the background - so only option for now is the docker-compose file with shared directory and direct registration of the contract + shutdown and then backup/export into the new image for build.
+- running inline docker commands doesn't  work as expected, doesn't run in the background - so only option for now is the `docker-compose` file with shared directory and direct registration of the contract + shutdown and then backup/export into the new image for build.
+
+TODO: Remember to enable go build caching for the Dockerfiles - https://docs.docker.com/build/cache/optimize/
+
+### HardHad Container Contract build steps:
+
+Run the `docker-compose.contracts.yml` so that we can execute the `deploy/entrypoint.sh` which runs geth in dev mode in background, registers the `hardhat` contrac, gracefully shuts down geth and then exports the devnet state archive at `deploy/checkpoint.tar.gz` that will be used in `Dockerfile.contracts` for the next build step that will run in Github Actions.
+
+- `deploy/Dockerfile.contracts` - contains the devnet + contract checkpoint - uses the alltools image as we assume that it will be used by developers.
+
+```Dockerfile
+COPY ./deploy/checkpoint/checkpoint.tar.gz .
+RUN mkdir /root/.ethereum && tar xfz checkpoint.tar.gz -C /root/.ethereum
+```
+
+
+
+
 
 
  Supports Tests:
@@ -136,7 +153,7 @@ npx hardhat test nodejs --coverage
 npx hardhat test --coverage
 ```
 
-```
+```bash
 # Check if the deployment module works
 npx hardhat ignition deploy ignition/modules/Counter.ts
 
