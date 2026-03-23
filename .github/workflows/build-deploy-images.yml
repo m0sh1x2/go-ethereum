@@ -1,5 +1,5 @@
 name: Build images
-run-name: ${{ github.actor }} testing docker build
+run-name: ${{ github.actor }} core image matrix builds
 on: 
   push:
     branches:
@@ -32,7 +32,7 @@ jobs:
           - image_suffix: "alltools-node"
             dockerfile: "./Dockerfile.alltools.node"
             context: "."
-            
+
     #if: ${{ github.event.label.name == 'CI:Build' }} # source: https://stackoverflow.com/questions/62325286/run-github-actions-when-pull-requests-have-a-specific-label
     
     # Run the build once the merge is complete: https://github.com/orgs/community/discussions/26724#discussioncomment-3253096
@@ -87,8 +87,8 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
-  debug:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dump event
-        run: echo '${{ toJson(github.event) }}'
+  # debug:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Dump event
+  #       run: echo '${{ toJson(github.event) }}'
