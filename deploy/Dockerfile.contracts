@@ -30,7 +30,7 @@ COPY --from=builder /go-ethereum/build/bin/* /usr/local/bin/
 # Set up the devnet checkpoint
 # IMPORTANT: If the directory is overwritten then the contracts and state will be gone.
 COPY ./deploy/checkpoint/checkpoint.tar.gz .
-RUN mkdir /root/.ethereum && tar xfz checkpoint.tar.gz -C /root/.ethereum
+RUN mkdir /root/.ethereum && tar xfz checkpoint.tar.gz -C /root/.ethereum && rm checkpoint.tar.gz
 
 EXPOSE 8545 8546 30303 30303/udp
 
