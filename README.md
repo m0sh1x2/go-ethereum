@@ -1,4 +1,4 @@
-# Lime Chain DevOps Take Home Task Solution Documentation
+# LimeChain 🍋 - DevOps Take Home Task Solution Documentation
 
 Expected initial rough time to finish the task - 1 week.
 
@@ -304,10 +304,138 @@ I have more experinece with k8s so I will start with the k8s manifests and test 
 
 Kubernetes manifests will be located at: `deploy/manifests'.
   - If timeleft set up ArgoCD for automatic deployments
-  
+
 Terraform configurations will be loacted at : 'deploy/terraform'.
 
+## Terraform GCP Cluster Setup
 
+We are going to use this guide https://developer.hashicorp.com/terraform/tutorials/kubernetes/gke and set up a basic single node cluster with terraform so that we can deploy the geth devnet into it.
+
+Setup is very slow, requires 20 minutes to start single node.
+
+Setup requirements:
+
+```bash
+terraform init
+terraform apply
+
+gcloud components install gke-gcloud-auth-plugin
+
+# Deploy the service
+cd deploy/manifests
+k apply -k overlays/dev
+```
+
+Aditionally the geth node requires more than 245m cpu request otherwise the health-checks will be very slow, so consuder using those values:
+
+```yaml
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+```
+
+
+
+
+# Task 6(Bonus)- Blockscout implementation in docker-compose.
+
+Blockscout provides a default docker-compose documentation - https://docs.blockscout.com/setup/deployment/docker-compose-deployment
+
+They have setup for `geth` - `docker compose -f geth.yml up -d` - we are going to use it in our default `docker-compose.yml` so that we can deploy it directly.
+
+Source of compose that is used our repo: https://github.com/blockscout/blockscout/tree/master/docker-compose
+
+Based on the repo Blockscout requires:
+
+- postgres
+- redis
+- blockscout backend
+- nginx proxy to bind backend, frontend and microservices
+- blockscout explored
+
+and 5 micro-services:
+- stats
+- sol2uml visualizer
+- sig-provider
+- user-ops-indexer
+
+There is an option to run only the exporer without micro-services - `Running only explorer without microservices: docker-compose -f no-services.yml up -d` this might be what we need with `All of the configs assume the Ethereum JSON RPC is running at http://localhost:8545.`
+
+Addiitonal geth requirements - https://docs.blockscout.com/setup/requirements/client-settings#geth:
+
+```bash
+sudo /usr/bin/geth --http --http.addr 0.0.0.0 --port 30303 --http.port 8545 --http.api debug,net,eth,shh,web3,txpool --ws.api "eth,net,web3,network,debug,txpool" --ws --ws.addr 0.0.0.0 --ws.port 8546 --ws.origins "*" --sepolia --datadir=/rinkeby --syncmode "full" --gcmode "archive" --http.vhosts "*"
+```
+
+Known Blockscout startup issues:
+
+Invalid rate limit config:
+```bash
+{"time":"2026-03-23T18:18:15.217Z","severity":"error","message":"Failed to fetch rate limit config: :invalid_config_url. Fallback to local config.","metadata":{}}
+warning: using map.field notation (without parentheses) to invoke function BlockScoutWeb.Endpoint.__sockets__() is deprecated, you must add parentheses instead: remote.function()
+  (phoenix 1.5.14) lib/phoenix/endpoint/supervisor.ex:139: Phoenix.Endpoint.Supervisor.socket_children/1
+  (phoenix 1.5.14) lib/phoenix/endpoint/supervisor.ex:105: Phoenix.Endpoint.Supervisor.init/1
+  (stdlib 6.2.2) supervisor.erl:869: :supervisor.init/1
+  (stdlib 6.2.2) gen_server.erl:2229: :gen_server.init_it/2
+  (stdlib 6.2.2) gen_server.erl:2184: :gen_server.init_it/6
+```
+For dev mode we can try to disable the rate limit, so that we can see if hte backedn wil lstart:
+
+```bash
+API_RATE_LIMIT_DISABLED=true
+```
+
+Disabled API rate limit fixes the restarts of the backend. But we also have issues when starting/stopping multiple times, current fix is to remove the disk mounts and set up custom volumes in the main `docker-compose.yml`:
+
+```yaml
+# docker-compose.yml
+volumes:
+  geth-datadir:
+  redis-data:
+  blockscout-db-data:
+  logs:
+  dets:
+```
+
+After this we can run `compose up -d` and `down -v` without getting unexpected behavior or errors on the local devnet block explorer. 
+
+We can also test if new accounts and transactions are logged in geth shell:
+
+```bash
+# create account
+clef newaccount --keystore keystore/
+
+# get accounts
+
+
+# make transaction
+eth.sendTransaction({
+  from: '0x71562b71999873db5b286df957af199ec94617f7',
+  to: '0x1547c6e06f89640c4db6ac3476e21f9ebb5c52da',
+  value: web3.toWei(0.1, 'ether')
+});
+```
+
+Check `localhost` and you will see a `Conin transfer` `+ `Susccess` transaction with values and fees.
+
+
+```bash
+{"time":"2026-03-23T18:03:17.628Z","severity":"info","message":"Application indexer exited: Indexer.Application.start(:normal, []) returned an error: shutdown: failed to start child: Indexer.Supervisor\n    ** (EXIT) shutdown: failed to start child: Indexer.NFTMediaHandler.Queue\n        ** (EXIT) an exception was raised:\n            ** (MatchError) no match of right hand side value: {:error, {:file_error, ~c\"./dets/queue_storage\", :eacces}}\n                (indexer 9.0.2) lib/indexer/nft_media_handler/queue.ex:67: Indexer.NFTMediaHandler.Queue.init/1\n                (stdlib 6.2.2) gen_server.erl:2229: :gen_server.init_it/2\n                (stdlib 6.2.2) gen_server.erl:2184: :gen_server.init_it/6\n                (stdlib 6.2.2) proc_lib.erl:329: :proc_lib.init_p_do_apply/3","metadata":{}}
+```
+
+- https://github.com/blockscout/blockscout/issues/1413
+recommended solution: 
+```yaml
+export ETHEREUM_JSONRPC_HTTP_URL=http://localhost:8545
+export ETHEREUM_JSONRPC_TRACE_URL=http://localhost:8545
+export ETHEREUM_JSONRPC_WS_URL=ws://localhost:8546
+export ETHEREUM_JSONRPC_VARIANT=parity
+```
+doesn't work.
 
 
 # Faced Issues/Errors

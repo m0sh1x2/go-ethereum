@@ -37,11 +37,11 @@ spec:
         # I am setting some default resources - no idea of the node cpu/memory usage when under medium or heavy load.
         resources:
           requests:
-            cpu: 200m
-            memory: 200Mi
+            cpu: 100m
+            memory: 100Mi
           limits:
             cpu: 500m
-            memory: 512Mi
+            memory: 256Mi
             
         # We are checking of geth is listening, no curl needed.
         readinessProbe:
@@ -87,4 +87,4 @@ spec:
       # storageClassName: "my-storage-class"
       resources:
         requests:
-          storage: 1Gi
+          storage: 2Gi

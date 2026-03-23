@@ -1,12 +1,6 @@
 
 services:
   geth:
-    # Image with pre-loaded contracts
-    # image: geth-contracts:0.0.1
-
-    # Basic image with tools
-    # image: ghcr.io/m0sh1x2/go-ethereum-alltools:master
-    
     # Image with contracts
     image: ghcr.io/m0sh1x2/go-ethereum-contracts:test-branch
 
@@ -16,7 +10,8 @@ services:
       --dev 
       --http
       --http.addr 0.0.0.0 
-      --http.api eth,web3,debug,net 
+      --http.api debug,net,eth,shh,web3,txpool
+      
       --http.corsdomain "https://remix.ethereum.org"
       --datadir=/root/.ethereum
       --http.vhosts="*"
@@ -35,9 +30,78 @@ services:
       retries: 3
       start_period: 40s
       start_interval: 5s
+
+  redis-db:
+    extends:
+      file: ./deploy/blockscout/services/redis.yml
+      service: redis-db
+
+  db-init:
+    extends:
+      file: ./deploy/blockscout/services/db.yml
+      service: db-init
+
+  db:
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    extends:
+      file: ./deploy/blockscout/services/db.yml
+      service: db
+
+  backend:
+    depends_on:
+      - db
+      - redis-db
+    extends:
+      file: ./deploy/blockscout/services/backend.yml
+      service: backend
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+      args:
+        API_V1_READ_METHODS_DISABLED: "false"
+        DISABLE_WEBAPP: "false"
+        API_V1_WRITE_METHODS_DISABLED: "false"
+        ADMIN_PANEL_ENABLED: ""
+        RELEASE_VERSION: 9.0.2
+    links:
+      - db:database
+    environment:
+        ETHEREUM_JSONRPC_HTTP_URL: http://geth:8545/
+        ETHEREUM_JSONRPC_TRACE_URL: http://geth:8545/
+        ETHEREUM_JSONRPC_WS_URL: ws://geth:8545/
+        CHAIN_ID: '1337'
+
+  frontend:
+    depends_on:
+      - backend
+    extends:
+      file: ./deploy/blockscout/services/frontend.yml
+      service: frontend
+    environment:
+      NEXT_PUBLIC_STATS_API_HOST:
+
+  proxy:
+    depends_on:
+      - backend
+      - frontend
+    extends:
+      file: ./deploy/blockscout/services/nginx-explorer.yml
+      service: proxy
+    volumes:
+      - "./deploy/blockscout/explorer.conf.template:/etc/nginx/templates/default.conf.template"
+
+# Blockscout setup from documentation - https://github.com/blockscout/blockscout/blob/master/docker-compose/no-services.yml
+
+
+
 #     volumes:
 #       - geth-datadir:/root/.ethereum
 
-# volumes:
-#   geth-datadir:
-
+volumes:
+  geth-datadir:
+  redis-data:
+  blockscout-db-data:
+  logs:
+  dets:
