@@ -34,6 +34,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # 1. Add Buildx - Required for Docker caching
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       # Here we run the contract workflow, we should exit 1 when successsfully completed.
       # TODO: Do we use --wait-on-container exit or it should work as expected in Github Actions?
@@ -62,6 +65,9 @@ jobs:
           file: ./deploy/Dockerfile.contracts
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # 2. Add Caching configuration
+          cache-from: type=gha,scope=${{ github.workflow }}-${{ env.IMAGE_NAME }}
+          cache-to: type=gha,mode=max,scope=${{ github.workflow }}-${{ env.IMAGE_NAME }}
 
       - name: Generate artifact attestation
         uses: actions/attest@v4
