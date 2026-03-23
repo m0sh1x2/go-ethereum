@@ -1,7 +1,7 @@
 
 services:
   geth:
-    image: ghcr.io/m0sh1x2/go-ethereum-alltools:master
+    image: ghcr.io/m0sh1x2/go-ethereum-alltools-node:master
     # image: geth-alltools-node:0.0.1
 
     entrypoint: ["/entrypoint.sh"]
