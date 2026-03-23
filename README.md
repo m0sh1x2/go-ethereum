@@ -279,8 +279,14 @@ jobs:
       run: echo $GITHUB_SHA_SHORT
 ```
 
+IMPORTANT: We are aborting on the exit container state of the test, we don't care if geth is alive or forcefully terminated:
 
+```bash
+      - name: Run Compose Test
+        run: docker compose -f docker-compose.tests.yml up --abort-on-container-exit --exit-code-from test-geth
+```
 
+Also we are setting up a custom `hardhat.config.test.ts` so that we can connect via dns to `http://geth:8545`.
 
 
 

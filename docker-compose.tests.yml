@@ -28,7 +28,16 @@ services:
       retries: 3
       start_period: 40s
       start_interval: 5s
-#     volumes:
+  test-geth: 
+    depends_on: ["geth"]
+    # we are using the default all-tools-node image
+    image: ghcr.io/m0sh1x2/go-ethereum-alltools-node:master
+
+    # We are specyfing a different test config so that we can use the docker dns
+    command: sh -c "ls -lat && cd hardhat/ && npx hardhat test --network geth --config hardhat.config.test.ts"
+
+    volumes:
+      - ./hardhat:/hardhat
 #       - geth-datadir:/root/.ethereum
 
 # volumes:

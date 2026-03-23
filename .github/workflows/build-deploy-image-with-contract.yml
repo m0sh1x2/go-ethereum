@@ -84,7 +84,7 @@ jobs:
           echo "GETH_IMAGE=ghcr.io/${REPO_LOWER}-contracts:${TAG_LOWER}" >> $GITHUB_ENV
 
       - name: Run Compose Test
-        run: docker compose -f docker-compose.tests.yml up --abort-on-container-exit
+        run: docker compose -f docker-compose.tests.yml up --abort-on-container-exit --exit-code-from test-geth
 
       - name: Generate artifact attestation
         uses: actions/attest@v4
