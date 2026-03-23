@@ -42,32 +42,25 @@ spec:
           limits:
             cpu: 500m
             memory: 512Mi
-        # TOOD: curl is not built in the container...
-        # readynessProbe:
-        #   exec:
-        #     command:
-        #       - /bin/sh
-        #       - -c
-        #       - >
-        #         curl -s -X POST http://localhost:8545 \
-        #         -H "Content-Type: application/json" \
-        #         --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-        #         | grep -q '"result"'
-        #   initialDelaySeconds: 1
-        #   periodSeconds: 1
-
-        # livenessProbe:
-        #   exec:
-        #     command:
-        #       - /bin/sh
-        #       - -c
-        #       - >
-        #         curl -s -X POST http://localhost:8545 \
-        #         -H "Content-Type: application/json" \
-        #         --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-        #         | grep -q '"result"'
-        #   initialDelaySeconds: 1
-        #   periodSeconds: 1
+            
+        # We are checking of geth is listening, no curl needed.
+        readinessProbe:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - >
+                geth --exec net.listening attach http://localhost:8545
+          initialDelaySeconds: 1
+          periodSeconds: 1
+        livenessProbe:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - >
+                geth --exec net.listening attach http://localhost:8545
+          periodSeconds: 1
         ports:
         # - 8545 TCP, used by the HTTP based JSON RPC API
         # - 8546 TCP, used by the WebSocket based JSON RPC API
