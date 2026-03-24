@@ -19,7 +19,7 @@ All of my work is logged in the [test-branch](https://github.com/m0sh1x2/go-ethe
 Original README.md file is [README_MAIN.md](./README_MAIN.md)
 
 ---
-# How to Run Locally
+## How to Run Locally
 
 To spin up the local devnet, smart contracts and block explorer run:
 
@@ -66,12 +66,25 @@ The infrastrucutre is provisioned on `Google Cloud Platform` by following the gu
 - `Kubernetes Manifests`: Located in `deploy/manifests`. Contains a basic Kusomization environment with the Statefulset and Service for it.
 - `Resource Management`: geth requires more than 245m cpu in order to run in dev mode.
 
----
+## 4. Architectural Decisions & Overcome Challenges
+During the development of this task, several architectural decisions and optimizations were made to ensure a stable devnet environment:
+
+### 1. Hardhat Ignition Incompatibility:
+  - Challenge: Deploying via Hardhat Ignition threw hardhat_getAutomine unsupported method errors against the Geth --dev node.
+  - Solution: Bypassed Ignition and utilized standard deployment scripts (scripts/deploy-counter.ts with viem plugin), which guarantees stable deployments on standalone local nodes.
+
+### 2. State Persistence for Docker Images:
+  - Challenge: Geth's --dev mode creates an ephemeral state. The task required a Docker image with pre-deployed contracts.
+  - Solution: Implemented a custom entrypoint script that deploys the contract, halts the node, and archives the /root/.ethereum directory into a tarball. This tarball is then injected as a base layer in the next CI/CD build step.
+
+### 3. Blockscout Explorer Stability (Bonus):
+  - Challenge: Running Blockscout locally caused constant backend restarts due to API rate limits and detached volumes.
+  - Solution: Set up appropriate `ETHEREUM_JSONRPC` env configurations, disabled API rate limits for the dev environment (API_RATE_LIMIT_DISABLED=true) and explicitly defined mapped volumes (redis-data, blockscout-db-data, etc.) in the docker-compose.yml to ensure data persistence and prevent crash loops on compose down/up, also add additonal configurations for websockets of geth: `--http.api debug,net,eth,shh,web3,txpool`
+
 
 # Task/Test/Research Notes
 
 This part of the document contains notes/decisions and logs that I have written while executing the tasks.
-
 
 ## Requirements based on research
 
