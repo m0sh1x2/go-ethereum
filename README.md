@@ -36,25 +36,6 @@ npx hardhat run scripts/deploy-counter.ts --build-profile production --network g
 docker compose -f docker-compose.yml up -d
 # Block explorer will be available on http://localhost:80
 ```
-
-
-## Requirements based on research
-
-Running local devnet:
-- geth is an execution clinet and requires a consensus client to work - https://geth.ethereum.org/docs/getting-started/consensus-clients
-    - geth might also require a genesis file/block to run?
-    - does dev mode support all features of the mainnet?
-    - additional information about Developer mode - https://geth.ethereum.org/docs/developers/dapp-developer/dev-mode
-        - requires knowledge of Solidity and Smart Contract Deployment - https://docs.soliditylang.org/en/v0.8.35-pre.1/, https://ethereum.org/developers/tutorials/deploying-your-first-smart-contract/
-        - geth also supports custom genesis configuration based on docs/guide `geth --dev dumpgenesis`
-        - setting up a a whole devnet will require a lot of research and testing I will Keep it as simple as possible. TODO: Get back to this if I have /timeleft.
-- consensus clients might require a validator client - https://ethereum.org/glossary/#consensus-client
-    - consensus clients can also require a beacon chain?
-    - Prism written in GO supports validator and beacon-chain - seems like it fits the requirements for the task, but how does it work? - https://prysm.offchainlabs.com/docs/install-prysm/install-with-docker/ 
-- validator clients might require 32 eth to run
-- Possible/Similar implementations - https://github.com/OffchainLabs/eth-pos-devnet/tree/master
-
-
 ## Task 2,3,4 - CI/CD GitHub Actions and Container Builds
 
 The CI/CD pipelines are fully automated and run on PR Labels.
@@ -91,6 +72,23 @@ The infrastrucutre is provisioned on `Google Cloud Platform` by following the gu
 # Task/Test/Research Notes
 
 This part of the document contains notes/decisions and logs that I have written while executing the tasks.
+
+
+## Requirements based on research
+
+Running local devnet:
+- geth is an execution clinet and requires a consensus client to work - https://geth.ethereum.org/docs/getting-started/consensus-clients
+    - geth might also require a genesis file/block to run?
+    - does dev mode support all features of the mainnet?
+    - additional information about Developer mode - https://geth.ethereum.org/docs/developers/dapp-developer/dev-mode
+        - requires knowledge of Solidity and Smart Contract Deployment - https://docs.soliditylang.org/en/v0.8.35-pre.1/, https://ethereum.org/developers/tutorials/deploying-your-first-smart-contract/
+        - geth also supports custom genesis configuration based on docs/guide `geth --dev dumpgenesis`
+        - setting up a a whole devnet will require a lot of research and testing I will Keep it as simple as possible. TODO: Get back to this if I have /timeleft.
+- consensus clients might require a validator client - https://ethereum.org/glossary/#consensus-client
+    - consensus clients can also require a beacon chain?
+    - Prism written in GO supports validator and beacon-chain - seems like it fits the requirements for the task, but how does it work? - https://prysm.offchainlabs.com/docs/install-prysm/install-with-docker/ 
+- validator clients might require 32 eth to run
+- Possible/Similar implementations - https://github.com/OffchainLabs/eth-pos-devnet/tree/master
 
 ## Go Ethereum
 
