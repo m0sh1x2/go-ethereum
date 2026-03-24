@@ -66,8 +66,7 @@ The infrastrucutre is provisioned on `Google Cloud Platform` by following the gu
 - `Kubernetes Manifests`: Located in `deploy/manifests`. Contains a basic Kusomization environment with the Statefulset and Service for it.
 - `Resource Management`: geth requires more than 245m cpu in order to run in dev mode.
 
-
-
+---
 
 # Task/Test/Research Notes
 
@@ -90,7 +89,7 @@ Running local devnet:
 - validator clients might require 32 eth to run
 - Possible/Similar implementations - https://github.com/OffchainLabs/eth-pos-devnet/tree/master
 
-## Go Ethereum
+### Go Ethereum
 
 Tasks:
 - Build the image
@@ -138,7 +137,7 @@ All ports:
 - 8547 TCP, used by the GraphQL API
 - 30303 TCP and UDP, used by the P2P protocol running the network
 
-# Task 3 Hardhat
+### Task 3 Hardhat
 
 - Understand what Hardhat is
 - Set up hardhat
@@ -161,7 +160,7 @@ other:
 
 TODO: Remember to enable go build caching for the Dockerfiles - https://docs.docker.com/build/cache/optimize/ - DONE.
 
-### HardHad Container Contract build steps:
+#### HardHad Container Contract build steps:
 
 Run the `docker-compose.contracts.yml` so that we can execute the `deploy/entrypoint.sh` which runs geth in dev mode in background, registers the `hardhat` contract, gracefully shuts down geth and then exports the devnet state archive at `deploy/checkpoint.tar.gz` that will be used in `Dockerfile.contracts` for the next build step that will run in Github Actions.
 
@@ -266,7 +265,7 @@ geth attach http://localhost:8545
 "0x608060405234801561000f575f5ffd5b506004361061003f575f3560e01c80630c55699c14610043578063371303c01461005d57806370119d0614610067575b5f5ffd5b61004b5f5481565b60405190815260200160405180910390f35b61006561007a565b005b610065610075366004610170565b6100c6565b60015f5f82825461008b9190610187565b9091555050604051600181527f51af157c2eee40f68107a47a49c32fbbeb0a3c9e5cd37aa56e88e6be92368a819060200160405180910390a1565b5f81116101255760405162461bcd60e51b815260206004820152602360248201527f696e6342793a20696e6372656d656e742073686f756c6420626520706f73697460448201526269766560e81b606482015260840160405180910390fd5b805f5f8282546101359190610187565b90915550506040518181527f51af157c2eee40f68107a47a49c32fbbeb0a3c9e5cd37aa56e88e6be92368a819060200160405180910390a150565b5f60208284031215610180575f5ffd5b5035919050565b808201808211156101a657634e487b7160e01b5f52601160045260245ffd5b9291505056fea26469706673582212209f29cef328aaec5c90c03d4b39dd6e8a1d7ab6a444aef1af6e373493c9ca60b864736f6c634300081c0033"
 ```
 
-# Task 4 Notes - Running hardhat ingregration test agains the devnet docker image
+### Task 4 Notes - Running hardhat ingregration test agains the devnet docker image
 
 Documentations that there is Multichain support for the hardhat viem test suit: https://hardhat.org/docs/guides/testing/using-viem#multichain-support
 
@@ -316,7 +315,7 @@ IMPORTANT: We are aborting on the exit container state of the test, we don't car
 Also we are setting up a custom `hardhat.config.test.ts` so that we can connect via dns to `http://geth:8545`.
 
 
-# Task 5 - Terraform k8s Cluster
+### Task 5 - Terraform k8s Cluster
 
 Task requires:
 - Terraform k8s cluster
@@ -333,7 +332,7 @@ Kubernetes manifests will be located at: `deploy/manifests'.
 
 Terraform configurations will be loacted at : 'deploy/terraform'.
 
-## Terraform GCP Cluster Setup
+#### Terraform GCP Cluster Setup
 
 We are going to use this guide https://developer.hashicorp.com/terraform/tutorials/kubernetes/gke and set up a basic single node cluster with terraform so that we can deploy the geth devnet into it.
 
@@ -364,7 +363,7 @@ Aditionally the geth node requires more than 245m cpu request otherwise the heal
             memory: 256Mi
 ```
 
-# Task 6 Notes (Bonus)- Blockscout implementation in docker-compose.
+### Task 6 Notes (Bonus)- Blockscout implementation in docker-compose.
 
 Blockscout provides a default docker-compose documentation - https://docs.blockscout.com/setup/deployment/docker-compose-deployment
 
@@ -457,7 +456,7 @@ export ETHEREUM_JSONRPC_VARIANT=parity
 ```
 doesn't work.
 
-# Faced Issues/Errors
+## Faced Issues/Errors
 
 When trying ot register a the demo smart contract to geth devnet:
 
