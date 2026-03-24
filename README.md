@@ -14,7 +14,7 @@ Expected initial rough time to finish the task - 1 week.
 
 Final time to finish the task: 3 days(Saturday, Sunday, Monday)
 
-All of my work is logged in the [test-branch](https://github.com/m0sh1x2/go-ethereum/commits/test-branch/) commit history any decisions/research/faced obsticles/issues are noted in this `README.md` and all final work is merged in the `master` branch .
+All of my work is logged in the [test-branch](https://github.com/m0sh1x2/go-ethereum/commits/test-branch/) commit history any decisions/research/faced obstacles/issues are noted in this `README.md` and all final work is merged in the `master` branch .
 
 Original README.md file is [README_MAIN.md](./README_MAIN.md)
 
@@ -46,7 +46,7 @@ When a PR is labled `CI:Build`, the workflow:
 
 1. Triggers a Docker build for the `go-ethereum` node.
 2. Utilizes multi-stage builds and Go build caching to optimize image size and build time.
-3. Pushesh the image ti GitHub Container Registry packages.
+3. Pushesh the image to GitHub Container Registry packages.
 
 ### `CI:Deploy` Workflow
 
@@ -54,16 +54,16 @@ When a PR is labled `CI:Deploy`, the workflow simulates the Hardhat integration 
 
 1. Spins up the devnet using `docker-compose.contracts.yml`.
 2. Runs the Hardhat deployment script (entrypoint.sh)[.deploy/entrypoint.sh] 
-3. Grecefully shuts down Geth and exports the devent state to `checkpoint.tar.gz`
+3. Gracefully shuts down Geth and exports the devnet state to `checkpoint.tar.gz`
 4. Builds a new Docker image with `Dockerfile.contracts`.
 5. Runs Hardhat integration tests agains the newly built image using `--abort-on-container-exit`  and `-exit-code-from test-geth`
 
 ## Task 5 - Terraform IaC and k8s
 
-The infrastrucutre is provisioned on `Google Cloud Platform` by following the guide on https://developer.hashicorp.com/terraform/tutorials/kubernetes/gke.
+The Infrastructure is provisioned on `Google Cloud Platform` by following the guide on https://developer.hashicorp.com/terraform/tutorials/kubernetes/gke.
 
 - `Terraform`: Located at `deploy/terraform` - deploys a 2-node separately managed ppool GKE cluster in multi-zones.
-- `Kubernetes Manifests`: Located in `deploy/manifests`. Contains a basic Kusomization environment with the Statefulset and Service for it.
+- `Kubernetes Manifests`: Located in `deploy/manifests`. Contains a basic Kustomization environment with the Statefulset and Service for it.
 - `Resource Management`: geth requires more than 245m cpu in order to run in dev mode.
 
 ## 4. Architectural Decisions & Overcome Challenges
@@ -89,7 +89,7 @@ This part of the document contains notes/decisions and logs that I have written 
 ## Requirements based on research
 
 Running local devnet:
-- geth is an execution clinet and requires a consensus client to work - https://geth.ethereum.org/docs/getting-started/consensus-clients
+- geth is an execution client and requires a consensus client to work - https://geth.ethereum.org/docs/getting-started/consensus-clients
     - geth might also require a genesis file/block to run?
     - does dev mode support all features of the mainnet?
     - additional information about Developer mode - https://geth.ethereum.org/docs/developers/dapp-developer/dev-mode
